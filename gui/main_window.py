@@ -1,25 +1,37 @@
 """
-Main Window for StudyCards-Pro
-Implements main UI: navigation, dashboard, and controls
+Main application window for StudyCards-Pro
 """
-from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTabWidget
-from gui.card_editor import CardEditor
-from gui.study_session import StudySession
-from gui.statistics import StatisticsView
-from gui.category_manager import CategoryManager
+from PySide6.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar, QAction, QMenuBar
+from PySide6.QtGui import QIcon
+from gui.deck_manager import DeckManager
+from gui.study_mode import StudyMode
+from gui.statistics_panel import StatisticsPanel
 
 class MainWindow(QMainWindow):
-    def __init__(self, db_manager):
+    def __init__(self, db):
         super().__init__()
         self.setWindowTitle("StudyCards-Pro")
-        self.db_manager = db_manager
-        self.resize(900, 640)
-        self.tabs = QTabWidget(self)
-        self.setCentralWidget(self.tabs)
-        self.init_tabs()
+        self.setWindowIcon(QIcon(":/icon.png"))
+        self.resize(1000, 720)
 
-    def init_tabs(self):
-        self.tabs.addTab(StudySession(self.db_manager), "Study")
-        self.tabs.addTab(CardEditor(self.db_manager), "Cards")
-        self.tabs.addTab(CategoryManager(self.db_manager), "Categories")
-        self.tabs.addTab(StatisticsView(self.db_manager), "Statistics")
+        self.db = db
+
+        self.tabs = QTabWidget()
+        self.tabs.addTab(DeckManager(db), "Decks")
+        self.tabs.addTab(StudyMode(db), "Study")
+        self.tabs.addTab(StatisticsPanel(db), "Statistics")
+
+        central = QWidget()
+        layout = QVBoxLayout(central)
+        layout.addWidget(self.tabs)
+        self.setCentralWidget(central)
+
+        self.setStatusBar(QStatusBar())
+        self.setup_menu()
+
+    def setup_menu(self):
+        menubar = QMenuBar(self)
+        file_menu = menubar.addMenu("File")
+        export_action = QAction("Export Deck...", self)
+        file_menu.addAction(export_action)
+        self.setMenuBar(menubar)
